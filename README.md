@@ -56,11 +56,11 @@ Here's how they perform on my macbook:
 
     real	0m13.756s
     user	0m13.680s
-    sys	0m18.190s
+    sys	  0m18.190s
     
     $ time node size-async.js 
     /Users/chaorany: 89549.233 MB
 
     real	0m17.328s
     user	0m17.396s
-    sys	0m19.156s
+    sys	  0m19.156s
