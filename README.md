@@ -28,3 +28,10 @@ finish.async(function(spawn) { // Open an asynchronous region
   // This callback is fired after all asynchronous calls finish
   // results now equals an array of results received from by each 'done'
 });
+```
+
+There are more detailed examples in the [examples](http://github.com/chaoran/finish/tree/master/examples) directory.
+
+### Use __finish__ within recursive functions
+
+Finish can be use within recursive function calls. Just be sure to create a new __finish__ instance in every recursive call.
