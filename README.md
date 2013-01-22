@@ -28,14 +28,12 @@ finish.async(function(spawn) { // Open an asynchronous region
 });
 ```
 
-There are more detailed examples in the [examples](http://github.com/chaoran/finish/tree/master/examples) directory.
-
-### Use __finish__ within recursive functions
+## Use __finish__ within recursive functions
 
 Finish can be used within recursive function calls. Just be sure to create a new __finish__ instance in every recursive call. 
 Check out the example: [size.js](http://github.com/chaoran/finish/blob/master/examples/size.js) to find out how to use finish to calculate size of a directory.
 
-### Why not Async.parallel
+## Why not use Async.parallel?
 
 [Async.parallel](http://github.com/caolan/async#parallel) accepts an array of continuation functions and runs them in parallel. It also provides a callback function which is fired after all functions finish. 
 Finish differs from async.parallel because it does not require asynchronous calls to be collected as an array to be able to run them in parallel and track their completion. After you open an asynchronous region with:
@@ -47,3 +45,22 @@ finish.async(funciton(spawn){
 })
 ```
 This gives you more flexiblity. Finish is more expressive.
+
+### Performance: finish vs. async.parallel
+
+Examples folder contains an example which calculates a size of a directory, implemented in both finish and async.parallel.
+Here's how they perform on my macbook:
+
+    $ time node size.js
+    /Users/chaorany: 89544.774 MB
+
+    real	0m13.756s
+    user	0m13.680s
+    sys	0m18.190s
+    
+    $ time node size-async.js 
+    /Users/chaorany: 89549.233 MB
+
+    real	0m17.328s
+    user	0m17.396s
+    sys	0m19.156s
