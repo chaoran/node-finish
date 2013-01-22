@@ -12,21 +12,19 @@ You can install using Node Package Manager (npm):
 ```javascript
 var Finish = require("finish");
 var finish = new Finish();
-finish.async(
-  function(spawn) {
-   // spawn any number of asynchronous tasks here
-   ['file1', 'file2', 'file3'].forEach(function(file) {
-     // You need to wrap each asynchronous call with 'spawn'
-     spawn(function(done) { 
-       path.exists(function(err, result) {
-         // You need to call 'done' in your async task's callback
-         done(err, result);
-       });
-     });
-   });
-  }, 
-  // This is called after all asynchronous tasks finish
-  function(err, results) {
-    // results now equals an array of result
-  }
-);
+finish.async(function(spawn) { // Open an asynchronous region
+  // Now you can make any asynchronous calls
+  // Just wrap each asynchronous call with function 'spawn'
+  ['file1', 'file2', 'file3'].forEach(function(file) {
+    spawn(function(done) { 
+      path.exists(function(err, result) {
+        // Your async function should call done in its callback
+        // 'result' passed into 'done' will be collected in the final callback
+        done(err, result);
+      });
+    });
+  });
+}, function(err, results) {
+  // This callback is fired after all asynchronous calls finish
+  // results now equals an array of results received from by each 'done'
+});
