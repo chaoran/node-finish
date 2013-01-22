@@ -17,11 +17,9 @@ finish.async(function(spawn) { // Open an asynchronous region
   // Just wrap each asynchronous call with function 'spawn'
   ['file1', 'file2', 'file3'].forEach(function(file) {
     spawn(function(done) { 
-      path.exists(function(err, result) {
-        // Your async function should call done in its callback
-        // 'result' passed into 'done' will be collected in the final callback
-        done(err, result);
-      });
+      // Your async function should use 'done' as callback, or call 'done' in its callback
+      // 'result' passed into 'done' will be collected in the final callback
+      fs.readFile(file, done);
     });
   });
 }, function(err, results) {
