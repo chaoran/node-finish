@@ -1,8 +1,10 @@
+// You need to `npm install async` at current directory to run this example
+// This example serves as an performance test to compare async.parallel and finish
+
 var fs = require('fs')
   , path = require('path')
-  , Finish = require('../lib/finish')
+  , async = require('async')
 
-// This function computes total size of a directory
 function sizeOfDir(dir, callback) {
   fs.lstat(dir, function(err, stat) {
     if (err) return callback(null, 0);
@@ -13,19 +15,11 @@ function sizeOfDir(dir, callback) {
         if (err || files.length === 0) {
           callback(err, 0)
         } else {
-          // Create new finish
-          var finish = new Finish();
-          // Create an asynchronous region
-          finish.async(function(spawn) {
-            files.forEach(function(file) {
-              // Spawn an asynchronous task
-              spawn(function(done) {
-                sizeOfDir(path.join(dir, file), done);
-              })
-            })
-          }, 
-          // This will be called after all spawned asynchronous tasks finished
-          function(err, results) {
+          var tasks = [];
+          files.forEach(function(file) {
+            tasks.push(async.apply(sizeOfDir, path.join(dir,file)))
+          });
+          async.parallel(tasks, function(err, results) {
             if (results.length > 0) {
               callback(err, results.reduce(function(a,b) {
                 return a + b;
