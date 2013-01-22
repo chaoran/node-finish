@@ -18,7 +18,4 @@
     }
   ],
   keywords: ["finish", "async"]
-  "devDependencies": {
-    "mocha": "*"
-  }
 }
