@@ -33,12 +33,12 @@ There are more detailed examples in the [examples](http://github.com/chaoran/fin
 ### Use __finish__ within recursive functions
 
 Finish can be used within recursive function calls. Just be sure to create a new __finish__ instance in every recursive call. 
-Check out the example: [size.js](https://github.com/chaoran/finish/blob/master/examples/size.js) to find out how to use finish to calculate size of a directory.
+Check out the example: [size.js](http://github.com/chaoran/finish/blob/master/examples/size.js) to find out how to use finish to calculate size of a directory.
 
 ### Why not Async.parallel
 
-Async.parallel accepts an array of continuation functions and runs them in parallel. It also provides a callback function which is fired after all functions finish. 
-Finish differs from async.parallel because it does not require asynchronous calls to be collected as an array to be able to run in parallel and track their completion. After you open an asynchronous region with:
+[Async.parallel](http://github.com/caolan/async#parallel) accepts an array of continuation functions and runs them in parallel. It also provides a callback function which is fired after all functions finish. 
+Finish differs from async.parallel because it does not require asynchronous calls to be collected as an array to be able to run them in parallel and track their completion. After you open an asynchronous region with:
 ```javascript
 finish.async(funciton(spawn){
     // You can write any node code here; just wrap your asynchronous calls with 'spawn'
