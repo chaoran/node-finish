@@ -3,7 +3,7 @@
   "description": "Provide a single callback for multiple asynchronous calls; the callback is called when all asynchronous calls finish",
   "main": "./lib/finish",
   "author": "Chaoran Yang <chaorany@me.com>",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "repository": {
     "type": "git",
     "url": "http://github.com/chaoran/finish.git"
