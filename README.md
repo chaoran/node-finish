@@ -34,4 +34,5 @@ There are more detailed examples in the [examples](http://github.com/chaoran/fin
 
 ### Use __finish__ within recursive functions
 
-Finish can be use within recursive function calls. Just be sure to create a new __finish__ instance in every recursive call.
+Finish can be used within recursive function calls. Just be sure to create a new __finish__ instance in every recursive call. 
+Check out the example: [size.js](https://github.com/chaoran/finish/blob/master/examples/size.js) to find out how to use finish to calculate size of a directory.
