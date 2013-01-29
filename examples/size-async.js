@@ -25,7 +25,7 @@ function sizeOfDir(dir, callback) {
                 return a + b;
               }));
             } else {
-              callback(err, 0);
+              callback(err, results);
             }
           })
         }

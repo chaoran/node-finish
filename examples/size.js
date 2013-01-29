@@ -1,6 +1,6 @@
 var fs = require('fs')
   , path = require('path')
-  , Finish = require('../lib/finish')
+  , finish = require('../lib/finish')
 
 // This function computes total size of a directory
 function sizeOfDir(dir, callback) {
@@ -13,27 +13,20 @@ function sizeOfDir(dir, callback) {
         if (err || files.length === 0) {
           callback(err, 0)
         } else {
-          // Create new finish
-          var finish = new Finish();
-          // Create an asynchronous region
-          finish.async(function(spawn) {
+          finish(function(async) {
             files.forEach(function(file) {
               // Spawn an asynchronous task
-              spawn(function(done) {
-                sizeOfDir(path.join(dir, file), done);
+              async(function(done) {
+                sizeOfDir(path.join(dir, file), function(err, result) {
+                  done(err, result, function(a, b) {
+                    return a + b;
+                  });
+                });
               })
             })
           }, 
           // This will be called after all spawned asynchronous tasks finished
-          function(err, results) {
-            if (results.length > 0) {
-              callback(err, results.reduce(function(a,b) {
-                return a + b;
-              }));
-            } else {
-              callback(err, 0);
-            }
-          })
+          callback)
         }
       })
     } else {
