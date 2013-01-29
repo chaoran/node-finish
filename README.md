@@ -22,6 +22,7 @@ finish(function(async) {
   });
 }, function(err, results) {
   // This callback is fired after all asynchronous calls finish or as soon as an error occurs
+  console.log(results[0]);console.log(results[1]);console.log(results[2]);
 });
 ```
 
@@ -33,7 +34,6 @@ If you omit the third argument: __reduce__, __result__ passed to 'done' are coll
 
 For example,
 ```javascript
-var finish = require("finish");
 finish(function(async) { 
   ['file1', 'file2', 'file3'].forEach(function(file) {
     async(function(done) { 
