@@ -10,57 +10,66 @@ You can install using Node Package Manager (npm):
 
 ## Quick Examples
 ```javascript
-var Finish = require("finish");
-var finish = new Finish();
-finish.async(function(spawn) { // Open an asynchronous region
-  // Now you can make any asynchronous calls
-  // Just wrap each asynchronous call with function 'spawn'
+var finish = require("finish");
+finish(function(async) { 
+  // Any asynchronous calls within this function will be captured
+  // Just wrap each asynchronous call with function 'async'
   ['file1', 'file2', 'file3'].forEach(function(file) {
-    spawn(function(done) { 
+    async(function(done) { 
       // Your async function should use 'done' as callback, or call 'done' in its callback
-      // 'result' passed into 'done' will be collected in the final callback
-      fs.readFile(file, done); // done accepts two arguments: err and result
+      fs.readFile(file, done); 
     });
   });
 }, function(err, results) {
-  // This callback is fired after all asynchronous calls finish
-  // results now equals an array of results received from by each 'done'
+  // This callback is fired after all asynchronous calls finish or as soon as an error occurs
 });
 ```
 
-## Use __finish__ within recursive functions
+## Callback: done
 
-Finish can be used within recursive function calls. Just be sure to create a new __finish__ instance in every recursive call. 
-Check out the example: [size.js](http://github.com/chaoran/finish/blob/master/examples/size.js) to find out how to use finish to calculate size of a directory.
+Every asynchronous function within finish should use 'done' as their callback, or call 'done' in their callback. It accepts three arguments: __error__, __result__, __reduce__.
+
+If you omit the third argument: __reduce__, __result__ passed to 'done' are collected into an array: __results__ which is passed to the final callback. If you use a reduce function as the third argument, it is used to reduce results.
+
+For example,
+```javascript
+var finish = require("finish");
+finish(function(async) { 
+  ['file1', 'file2', 'file3'].forEach(function(file) {
+    async(function(done) { 
+      fs.lstat(file, function(err, stat) {
+        done(err, stat.size, function(a, b){return a+b});
+      }); 
+    });
+  });
+}, function(err, result) {
+  //result equals the total size of 'file1', 'file2', and 'file3'.
+});
+```
+
 
 ## Why not use Async.parallel?
 
 [Async.parallel](http://github.com/caolan/async#parallel) accepts an array of continuation functions and runs them in parallel. It also provides a callback function which is fired after all functions finish. 
-Finish differs from async.parallel because it does not require asynchronous calls to be collected as an array to be able to run them in parallel and track their completion. After you open an asynchronous region with:
-```javascript
-finish.async(funciton(spawn){
-    // You can write any node code here; just wrap your asynchronous calls with 'spawn'
-}, function(err, results){
-    
-})
-```
-This gives you more flexiblity. Finish is more expressive.
+Finish differs from async.parallel because it does not require user to pack asynchronous calls into an array to run them in parallel and track their completion. This gives you more flexibility and greatly reduce the lines of plateboiler code you need to write when using Async.parallel.
+
+Finish can also be used within a recursive call. 
 
 ## Performance: finish vs. async.parallel
 
 Examples folder contains an example which calculates a size of a directory, implemented in both finish and async.parallel.
 Here's how they perform on my macbook:
 
-    $ time node size.js
-    /Users/chaorany: 89544.774 MB
+    $ time node size.js 
+    /Users/chaorany: 91597.68 MB
 
-    real  0m13.756s
-    user  0m13.680s
-    sys   0m18.190s
+    real	0m13.238s
+    user	0m13.148s
+    sys	0m17.396s
     
     $ time node size-async.js 
-    /Users/chaorany: 89549.233 MB
+    /Users/chaorany: 91598.601 MB
 
-    real  0m17.328s
-    user  0m17.396s
-    sys	  0m19.156s
+    real	0m15.793s
+    user	0m15.861s
+    sys	0m17.968s
