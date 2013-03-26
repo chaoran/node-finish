@@ -48,6 +48,28 @@ finish(function(async) {
 });
 ```
 
+## Ordered results
+Sometimes, you want to know the mapping between asynchronous tasks and results their produced.
+__Finish__ provides a version that guarantees results from each asynchronous task are collected in the order asynchronous tasks spawn. 
+
+```javascript
+// a async function which does nothing useful
+function async_print(value, callback) {
+	process.nextTick(function() {
+		callback(null, value)
+	})
+}
+
+finish.ordered(function(async) { 
+	for (var i = 0; i< 99; ++i) {
+		async(function(done) { async_print(i, done) })
+	}
+}, function(err, results) {
+	console.log(results)
+	// output: [0, 1, 2, ..., 99]
+})
+```
+
 ## Why not use Async.parallel?
 
 [Async.parallel](http://github.com/caolan/async#parallel) accepts an array of continuation functions and runs them in parallel. It also provides a callback function which is fired after all functions finish. 
