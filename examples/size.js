@@ -6,42 +6,33 @@ var fs = require('fs')
 function sizeOfDir(dir, callback) {
   fs.lstat(dir, function(err, stat) {
     if (err) return callback(null, 0);
-    if (stat.isFile()) {
-      callback(null, stat.size);
-    } else if (stat.isDirectory()) {
-      fs.readdir(dir, function(err, files) {
-        if (err || files.length === 0) {
-          callback(err, 0)
-        } else {
-          finish(function(async) {
-            files.forEach(function(file) {
-              // Spawn an asynchronous task
-              async(function(done) {
-                sizeOfDir(path.join(dir, file), function(err, result) {
-                  done(err, result, function(a, b) {
-                    return a + b;
-                  });
-                });
-              })
-            })
-          }, 
-          // This will be called after all spawned asynchronous tasks finished
-          callback)
-        }
-      })
-    } else {
-      callback(null, 0)
-    }
-  });
+    if (stat.isFile()) return callback(null, stat.size);
+		if (!stat.isDirectory()) return callback(null, 0);
+
+		fs.readdir(dir, function(err, files) {
+			if (err || files.length === 0) return callback(null, 0);
+
+			finish(function(async) {
+				files.forEach(function(file) {
+					async(function(done) {
+						sizeOfDir(path.join(dir, file), done)
+					})
+				})
+			}, function(err, sizes) {
+				var sum = 0
+				for (var i = 0, l = sizes.length; i < l; ++i) {
+					sum += sizes[i]
+				}
+				callback(null, sum)
+			})
+		})
+  })
 }
-var dir = '/Users/chaorany';
+
+var dir = '/Users/chaorany'
 sizeOfDir(dir, function(err, size) {
-  if (err) {
-    console.error("ERROR:" + err);
-  } else {
-    total_kb = size / 1024.0;
-    total_mb = total_kb / 1024.0;
-    console.log("%s: %d MB", dir, total_mb.toFixed(3));
-  }
-});
+	total_kb = size / 1024.0;
+	total_mb = total_kb / 1024.0;
+	console.log("%s: %d MB", dir, total_mb.toFixed(3));
+})
 

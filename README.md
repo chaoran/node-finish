@@ -1,7 +1,7 @@
 # Finish.js
 ======
 
-Finish is a node utility module that provides a simple straight-forward way to catch the completion of multiple asynchronous tasks. 
+Finish is a node utility module which provides a straight-forward syntax to express multiple asynchronous tasks with unified callback function.
 
 ## Installation
 You can install using Node Package Manager (npm):
@@ -28,9 +28,9 @@ finish(function(async) {
 
 ## Callback: done
 
-Every asynchronous function within finish should use 'done' as their callback, or call 'done' in their callback. It accepts three arguments: __error__, __result__, __reduce__.
+Every asynchronous function within finish should use 'done' as their callback, or call 'done' in their callback. It accepts three arguments: __error__, __result__, __key__.
 
-If you omit the third argument: __reduce__, __result__ passed to 'done' are collected into an array: __results__ which is passed to the final callback. If you use a reduce function as the third argument, it is used to reduce results.
+If you omit the third argument: __key__, __result__ passed to 'done' are collected into an array: __results__ which is passed as an argument to the final callback. If you specify the third argument __key__, __result__ will be collected into an object; each with __key__ as its key. 
 
 For example,
 ```javascript
@@ -38,22 +38,21 @@ finish(function(async) {
   ['file1', 'file2', 'file3'].forEach(function(file) {
     async(function(done) { 
       fs.lstat(file, function(err, stat) {
-        done(err, stat.size, function(a, b){return a+b});
+        done(err, stat.size, file);
       }); 
     });
   });
-}, function(err, result) {
-  //result equals the total size of 'file1', 'file2', and 'file3'.
+}, function(err, results) {
+	// results is an object, not an array
+	console.log(results)
 });
 ```
-
 
 ## Why not use Async.parallel?
 
 [Async.parallel](http://github.com/caolan/async#parallel) accepts an array of continuation functions and runs them in parallel. It also provides a callback function which is fired after all functions finish. 
 Finish differs from async.parallel because it does not require user to pack asynchronous calls into an array to run them in parallel and track their completion. This gives you more flexibility and greatly reduce the lines of plateboiler code you need to write when using Async.parallel.
-
-Finish can also be used within a recursive call. 
+Moreover, it increase parallelism, which gives you better performance.
 
 ## Performance: finish vs. async.parallel
 
@@ -61,15 +60,18 @@ Examples folder contains an example which calculates a size of a directory, impl
 Here's how they perform on my macbook:
 
     $ time node size.js 
-    /Users/chaorany: 91597.68 MB
+		/Users/chaorany: 118740.345 MB
 
-    real	0m13.238s
-    user	0m13.148s
-    sys	0m17.396s
+		real	0m14.965s
+		user	0m15.224s
+		sys	0m20.381s
     
     $ time node size-async.js 
-    /Users/chaorany: 91598.601 MB
+		/Users/chaorany: 118738.366 MB
 
-    real	0m15.793s
-    user	0m15.861s
-    sys	0m17.968s
+		real	0m20.036s
+		user	0m20.080s
+		sys	0m20.458s
+
+(I don't know why returned size is different on my machine. It would be great if you can send me a message if you might know the reason...)
+
