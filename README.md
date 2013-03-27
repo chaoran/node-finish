@@ -43,8 +43,8 @@ finish(function(async) {
     });
   });
 }, function(err, results) {
-	// results is an object, not an array
-	console.log(results)
+  // results is an object, not an array
+  console.log(results)
 });
 ```
 
@@ -55,18 +55,18 @@ __Finish__ provides a version that guarantees results from each asynchronous tas
 ```javascript
 // a async function which does nothing useful
 function async_print(value, callback) {
-	process.nextTick(function() {
-		callback(null, value)
-	})
+  process.nextTick(function() {
+    callback(null, value)
+  })
 }
 
 finish.ordered(function(async) { 
-	for (var i = 0; i< 99; ++i) {
-		async(function(done) { async_print(i, done) })
-	}
+  for (var i = 0; i< 99; ++i) {
+    async(function(done) { async_print(i, done) })
+  }
 }, function(err, results) {
-	console.log(results)
-	// output: [0, 1, 2, ..., 99]
+  console.log(results)
+  // output: [0, 1, 2, ..., 99]
 })
 ```
 
@@ -82,18 +82,18 @@ Examples folder contains an example which calculates a size of a directory, impl
 Here's how they perform on my macbook:
 
     $ time node size.js 
-		/Users/chaorany: 118740.345 MB
+    /Users/chaorany: 118740.345 MB
 
-		real	0m14.965s
-		user	0m15.224s
-		sys	0m20.381s
+    real  0m14.965s
+    user  0m15.224s
+    sys 0m20.381s
     
     $ time node size-async.js 
-		/Users/chaorany: 118738.366 MB
+    /Users/chaorany: 118738.366 MB
 
-		real	0m20.036s
-		user	0m20.080s
-		sys	0m20.458s
+    real  0m20.036s
+    user  0m20.080s
+    sys 0m20.458s
 
 (I don't know why returned size is different on my machine. It would be great if you can send me a message if you might know the reason...)
 
