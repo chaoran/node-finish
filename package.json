@@ -3,7 +3,7 @@
   "description": "Provide a single callback for multiple asynchronous calls; the callback is called when all asynchronous calls finish",
   "main": "./finish",
   "author": "Chaoran Yang <chaorany@me.com>",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "repository": {
     "type": "git",
     "url": "http://github.com/chaoran/node-finish.git"
