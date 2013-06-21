@@ -48,7 +48,7 @@ finish(function(async) {
 });
 ```
 
-## finish.forEach
+## `finish.forEach`
 
 If you are executing the same function on every item in an array, and want a callback after all is done? use `finish.forEach`:
 
