@@ -2,14 +2,20 @@ var Finish = function(callback) {
   this.count = 0;
   this.end = false;
   this.results = [];
+  this.resultsObj={};
   this.callback = callback;
 }
 
-Finish.prototype.done = function(err, result) {
+Finish.prototype.done = function(err, result, key) {
   if (this.error) return;
   if (err) { this.error = err; return this.callback(err); }
   this.results.push(result);
-  if (--this.count === 0 && this.end) this.callback(null, this.results);
+  if(typeof key!=="undefined"){
+    this.resultsObj[key]=result;
+  }
+  if (--this.count === 0 && this.end) {
+    this.callback(null, Object.keys(this.resultsObj).length===this.results.length ? this.resultsObj:this.results);
+  }
 }
 
 module.exports = function(body, callback) {
