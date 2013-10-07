@@ -52,9 +52,10 @@ used when an `reducer` is presented.
   calls complete or an error occured, taking two arguments:
   * `err`: If an error occured, `err` is the error. Otherwise, __null__.
   * `results`: An array of `result` objects returned by all asynchronous
-    calls. The order of elements of `results` are not guaranteed. (See
-`finish.ordered` if order guarantee is needed.) `results` is an object returned
-by `Object.create(null)` if `key` argument is used in the first `async` call.
+    calls. The order of elements of `results` are not guaranteed (See
+`finish.ordered` if order guarantee is needed). If the optional `key` argument
+is used in the first `async` call, `results` will be an object with __null__ as
+prototype; `result` will be properties of `results`.
 
 ## `finish.map`
 
