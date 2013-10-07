@@ -1,16 +1,15 @@
-var util = require("util");
 var noop = function() {};
 
 var Finish = function(args, flavor, array) {
   switch (args.length) {
     case 2: {
       this.results = flavor === "keyed" ? Object.create(null) : [];
-      this.callback = args[1];
+      this._callback = args[1];
       this.listener = this.getDefaultListener(flavor);
     }; break;
     case 4: this.results = args[2];
     case 3: {
-      this.callback = args[args.length - 1];
+      this._callback = args[args.length - 1];
       this.listener = flavor === "ordered" ?
           this.getOrderedListener(args[1], array) :
           this.getUnorderedListener(args[1], array);
@@ -18,15 +17,16 @@ var Finish = function(args, flavor, array) {
     default: throw new Error("Wrong number of arguments");
   }
 
-  this.count = array === undefined ? 0 : array.length;
+  this.callback = noop;
+  this.count = 0;
 };
 
 Finish.prototype.kickoff = function() {
-  var self = this;
+  this.callback = this._callback;
 
   if (this.count === 0) {
-    self.callback(null, self.results);
-    self.callback = noop;
+    this.callback(null, this.results);
+    this.callback = noop;
   }
 };
 
@@ -35,6 +35,7 @@ Finish.prototype.done = function(index) {
 
   return function(err, result) {
     if (err) {
+      self.kickoff = noop;
       self.callback(err);
       self.callback = noop;
     } else {
@@ -115,27 +116,22 @@ Finish.prototype.getOrderedListener = function(func, array) {
 };
 
 module.exports = function(func) {
-  var finish, args = arguments;
-  var spawn = function(key, async) {
-    var done;
+  var finish, done, args = arguments;
 
+  func(function(key, async) {
     if (async === undefined) {
-      finish = new Finish(args);
-      done = finish.done();
+      if (finish === undefined) {
+        finish = new Finish(args);
+        done = finish.done();
+      }
       async = key;
-      spawn = function(async) { ++finish.count; async(done); }
     } else {
-      finish = new Finish(args, "keyed");
+      if (finish === undefined) finish = new Finish(args, "keyed");
       done = finish.done(key);
-      spawn = function(key, async) { ++finish.count; async(finish.done(key)); };
     }
 
     ++finish.count;
     async(done);
-  }
-
-  func(function(key, async) {
-    spawn(key, async);
   });
 
   finish.kickoff();
@@ -157,8 +153,10 @@ module.exports.map = function(array, async) {
   var args = Array.prototype.slice.apply(arguments);
 
   if (array instanceof Array === false) {
-    var keys = array.keys();
+    var keys = Object.keys(array);
     var finish = new Finish(args.slice(1), "keyed", array);
+
+    finish.count = keys.length;
 
     switch (async.length) {
       case 2: keys.forEach(function(key) {
@@ -175,6 +173,8 @@ module.exports.map = function(array, async) {
   } else {
     var finish = new Finish(args.slice(1), undefined, array);
     var done = finish.done();
+
+    finish.count = array.length;
 
     switch (async.length) {
       case 2: array.forEach(function(item) {
@@ -196,6 +196,8 @@ module.exports.map = function(array, async) {
 module.exports.ordered.map = function(array, async) {
   var args = Array.prototype.slice.apply(arguments);
   var finish = new Finish(args.slice(1), "ordered", array);
+
+  finish.count = array.length;
 
   switch (async.length) {
     case 2: array.forEach(function(item, index) {
