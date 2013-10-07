@@ -1,38 +1,31 @@
-// You need to `npm install async` at current directory to run this example
-// This example serves as an performance test to compare async.parallel and finish
-
 var fs = require('fs')
-  , path = require('path')
   , async = require('async')
 
 function sizeOfDir(dir, callback) {
   fs.lstat(dir, function(err, stat) {
-    if (err) return callback(null, 0);
-    if (stat.isFile()) return callback(null, stat.size);
-    if (!stat.isDirectory()) return callback(null, 0);
+    if (err) return callback(err);
+    if (!stat.isDirectory()) return callback(null, stat.size);
 
     fs.readdir(dir, function(err, files) {
-      if (err || files.length === 0) return callback(null, 0)
+      if (err) return callback(err.code === 'EACCES' ? null : err, 0);
 
-      var tasks = [];
-      files.forEach(function(file) {
-        tasks.push(async.apply(sizeOfDir, path.join(dir,file)))
-      })
-      async.parallel(tasks, function(err, results) {
-        var sum = 0
-        for (var i = 0, l = results.length; i < l; ++i) {
-          sum += results[i]
-        }
-        callback(null, sum)
-      })
-    })
-  })
+      async.parallel(files.map(function(file) {
+        return async.apply(sizeOfDir, dir + '/' + file);
+      }), function(err, results) {
+        if (err) return callback(err);
+        return callback(null, results.reduce(function(sum, value) {
+          return sum + value;
+        }, 0));
+      });
+    });
+  });
 }
 
-var dir = '/Users/chaorany';
+var dir = process.argv[2] || process.cwd();
+
 sizeOfDir(dir, function(err, size) {
-  total_kb = size / 1024.0;
-  total_mb = total_kb / 1024.0;
+  if (err) throw err;
+  total_mb = size / 1024 / 1024;
   console.log("%s: %d MB", dir, total_mb.toFixed(3));
 });
 

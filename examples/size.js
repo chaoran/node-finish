@@ -1,38 +1,28 @@
 var fs = require('fs')
-  , path = require('path')
-  , finish = require('../lib/finish')
+  , finish = require('../finish')
 
-// This function computes total size of a directory
 function sizeOfDir(dir, callback) {
   fs.lstat(dir, function(err, stat) {
-    if (err) return callback(null, 0);
-    if (stat.isFile()) return callback(null, stat.size);
-    if (!stat.isDirectory()) return callback(null, 0);
+    if (err) return callback(err);
+    if (!stat.isDirectory()) return callback(null, stat.size);
 
     fs.readdir(dir, function(err, files) {
-      if (err || files.length === 0) return callback(null, 0);
+      if (err) return callback(err.code === 'EACCES' ? null : err, 0);
 
-      finish(function(async) {
-        files.forEach(function(file) {
-          async(function(done) {
-            sizeOfDir(path.join(dir, file), done)
-          })
-        })
-      }, function(err, sizes) {
-        var sum = 0
-        for (var i = 0, l = sizes.length; i < l; ++i) {
-          sum += sizes[i]
-        }
-        callback(null, sum)
-      })
-    })
-  })
+      finish.map(files, function(file, done) {
+        sizeOfDir(dir + '/' + file, done);
+      }, function(sum, value) {
+        return sum + value;
+      }, 0, callback);
+    });
+  });
 }
 
-var dir = '/Users/chaorany'
+var dir = process.argv[2] || process.cwd();
+
 sizeOfDir(dir, function(err, size) {
-  total_kb = size / 1024.0;
-  total_mb = total_kb / 1024.0;
+  if (err) throw err;
+  var total_mb = size / 1024 / 1024;
   console.log("%s: %d MB", dir, total_mb.toFixed(3));
 })
 
