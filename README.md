@@ -1,6 +1,6 @@
 # Finish
 
-_Finish_ is a *high performance* nodejs flow control utility that captures
+__Finish__ is a __high performance__ nodejs flow control utility that captures
 completion of multiple asynchronous calls with a single callback.
 
 ## Installation
@@ -27,6 +27,16 @@ finish(function(async) {
 ```
 
 ## API
+
+Finish provides four APIs:
+
+```javascript
+finish(func[, reducer[, initialValue]], callback);
+finish.map(array, async[, reducer[, initialValue]], callback);
+finish.ordered(func[, reducer[, initialValue]], callback);
+finish.ordered.map(array, async[, reducer[, initialValue]], callback);
+```
+
 ### finish
 #### Syntax
 ```javascript
