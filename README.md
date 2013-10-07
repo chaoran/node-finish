@@ -26,8 +26,9 @@ finish(function(async) {
 });
 ```
 
-## `finish(func[, reducer[, initialValue]], callback)`
-### Parameters
+## API
+###`finish(func[, reducer[, initialValue]], callback)`
+#### Parameters
 * `func`: function that makes asynchronous calls, taking one argument:
   * `async([key, ]done)`: wrapper function that wraps an asynchronous call.
     * `key`(__optional__): If provided, result of this call will be added as a
@@ -43,9 +44,10 @@ finish(function(async) {
   * `previousValue`: The value previously returned in the last invocation of
     the `reducer`, or `initialValue`, if supplied.
   * `currentValue`: The current result returned by an asynchronous call.
-* `initialValue`(optional): Object to use as the first argument to the first
-  call of the `reducer`. This argument should only be used when an `reducer` is
-presented.
+* `initialValue`(__optional__): Object to use as the first argument to the first
+  call of the `reducer`. It omitted, the first `result` returned by any
+asynchronous call will be used as `initialValue`. This argument should only be
+used when an `reducer` is presented.
 * `callback`: The final callback that will be invoked when all asynchronous
   calls complete or an error occured, taking two arguments:
   * `err`: If an error occured, `err` is the error. Otherwise, __null__.
