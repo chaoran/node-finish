@@ -27,7 +27,7 @@ finish(function(async) {
 ```
 
 ## API
-###`finish(func[, reducer[, initialValue]], callback)`
+### `finish(func[, reducer[, initialValue]], callback)`
 #### Parameters
 * `func`: function that makes asynchronous calls, taking one argument:
   * `async([key, ]done)`: wrapper function that wraps an asynchronous call.
@@ -60,12 +60,17 @@ prototype; `result` will be properties of `results`.
 #### Description
 `finish` is the free form of finish utility. One should wrap each asynchronous
 call with `async` and the asynchronous call should invoke `done` as callback.
-Note that it is safe to pass an function to `async` that executes synchronous.
-`result` objects passed to `done` is collected into an array if the optional
-`key` parameter of `async` is not used. The order of `result` objects in
-`results` are not guaranteed. When `key` parameter is used in `async`, `results`
-will be an object that has __null__ as prototype; each `result` will be an
-property in `results` at the associated `key`.
+Note that it is __safe__ to pass an function to `async` that executes
+__synchronous__. `result` objects passed to `done` is collected into an array if
+the optional `key` parameter of `async` is not used. The order of `result`
+objects in `results` are not guaranteed. When `key` parameter is used in
+`async`, `results` will be an object that has __null__ as prototype; each
+`result` will be an property in `results` at the associated `key`.
+
+When using an reducer, the reducer is invoked at every `done` callback with
+(`results`, `result`) as arguments. The final `results` is the return value of
+the last invocation of reducer. The order of reducer invocation is __not__
+guaranteed. One should not use a reducer if `key` argument of `async` is used.
 
 #### Examples
 ```javascript
@@ -102,26 +107,49 @@ finish(
       setTimeout(function() { done(null, 2); }, 200);
     });
   },
-  // reduction operator
-  function(prev, curr) { return prev + curr; },
-  // initial value
-  0,
-  // callback
+  function(prev, curr) { return prev + curr; }, // reduction operator
+  0, // initial value (can be omitted in this case)
   function(err, results) { assert.equal(results, 3); }
 );
 ```
 
-## `finish.map`
+### `finish.map(array, async[, reducer[, initialValue]], callback)`
+#### Parameters
+* `array`: An array of elements or an object.
+* `async`: If `array` is an instance of Array, `async` will be invoked on every
+  element of `array`. Otherwise, `async` will be invoked on `array`'s own
+enumerable properties. Depends on how many arguments `async` expects, `async` is
+invoked with: `(value, done)`, `(value, index, done)`, and `(value, index,
+array, done)`.
+  * `element`: the value of the element or property;
+  * `index`: the index of the element or the key of the property;
+  * `array`: the array or object being traversed;
+  * `done`: the callback function for the asynchronous call (Same as in
+    `finish`).
+* `reducer`(__optional__): Same as in `finish`.
+* `initialValue`(__optional__): Same as in `finish`.
+* `callback`: Same as in `finish`.
 
-If you are executing the same function on every item in an array, and want a
-callback after all is done? use `finish.forEach`:
+#### Descriptions
+This is an syntactic sugar for `finish`. It maps the `async` function onto each
+element (or property, if `array` is not an instance of Array) of `array`. Like
+`finish`, the order of execution is __not__ guaranteed either.
 
+#### Examples
 ```javascript
-finish.forEach(['file1', 'file2', 'file3'], function(file, done) { 
-  fs.readFile(file, done)
+// map an array
+finish.map([1, 2, 3], function(value, done) {
+  setTimeout(function() { done(null, value); });
 }, function(err, results) {
-  console.log(results)
-})
+  assert.equal(results, [1, 2, 3]);
+});
+
+// map an object
+finish.map({ one: 1, two: 2, three: 3}, function(value, done) {
+  setTimeout(function() { done(null, value); });
+}, function(err, results) {
+  assert.equal(results, { one: 1, two: 2, three: 3 });
+});
 ```
 
 ## Why not use Async.parallel?
