@@ -1,58 +1,49 @@
 var util = require("util");
-var EventEmitter = require("events").EventEmitter;
+var noop = function() {};
 
 var Finish = function(args, ordered, array) {
   switch (args.length) {
     case 2: {
       this.results = [];
       this.callback = args[1];
-      this.on('result', this.getDefaultListener(ordered));
+      this.listener = this.getDefaultListener(ordered);
     }; break;
     case 4: this.results = args[2];
     case 3: {
       this.callback = args[args.length - 1];
-      this.on(
-        'result',
-        ordered ?
+      this.listener = ordered ?
           this.getOrderedListener(args[1], array) :
-          this.getUnorderedListener(args[1], array)
-      );
+          this.getUnorderedListener(args[1], array);
     }; break;
     default: throw new Error("Wrong number of arguments");
   }
 
-  var self = this;
   this.count = array === undefined ? 0 : array.length;
-
-  this.once('error', function(err) {
-    self.removeAllListeners();
-    return self.callback(err);
-  });
 };
-
-util.inherits(Finish, EventEmitter);
 
 Finish.prototype.kickoff = function() {
   var self = this;
 
-  /** An error occured before kickoff, do nothing. */
-  if (EventEmitter.listenerCount(this, "error") === 0) return;
-
-  this.once('end', function() {
-    self.removeAllListeners();
-    return self.callback(null, self.results);
-  });
-
-  if (this.count === 0) this.emit('end');
+  if (this.count === 0) {
+    self.callback(null, self.results);
+    self.callback = noop;
+  }
 };
 
 Finish.prototype.done = function(index) {
   var self = this;
 
   return function(err, result) {
-    if (err) self.emit('error', err);
-    self.emit('result', result, index);
-    if (--self.count === 0) self.emit('end');
+    if (err) {
+      self.callback(err);
+      self.callback = noop;
+    } else {
+      self.listener(result, index);
+      if (--self.count === 0) {
+        self.callback(null, self.results);
+        self.callback = noop;
+      }
+    }
   };
 };
 
@@ -67,8 +58,8 @@ Finish.prototype.getDefaultListener = function(ordered) {
 Finish.prototype.getUnorderedListener = function(func, array) {
   var self = this;
 
-  function listener(value) {
-    self.results = func(self.results, value, array);
+  function listener(value, index) {
+    self.results = func(self.results, value, index, array);
   }
 
   if (this.results !== undefined) return listener;
