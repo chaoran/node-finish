@@ -1,7 +1,6 @@
-# Finish.js
-======
+# Finish
 
-Finish is a node utility module which provides a straight-forward syntax to express multiple asynchronous tasks with unified callback function.
+*Finish* is a high performance nodejs flow control utility that captures completion of multiple asynchronous calls with a single callback.
 
 ## Installation
 You can install using Node Package Manager (npm):
@@ -11,42 +10,23 @@ You can install using Node Package Manager (npm):
 ## Quick Examples
 ```javascript
 var finish = require("finish");
-finish(function(async) { 
+finish(function(async) {
   // Any asynchronous calls within this function will be captured
   // Just wrap each asynchronous call with function 'async'
-  ['file1', 'file2', 'file3'].forEach(function(file) {
-    async(function(done) { 
-      // Your async function should use 'done' as callback, or call 'done' in its callback
-      fs.readFile(file, done); 
-    });
-  });
+  async(function(done) { fs.readFile('hello.txt', done); }
+  async(function(done) { fs.readFile('world.txt', done); }
 }, function(err, results) {
-  // This callback is fired after all asynchronous calls finish or as soon as an error occurs
-  console.log(results[0]);console.log(results[1]);console.log(results[2]);
+  // This callback is invoked after all asynchronous calls finish or as soon as an error occurs
+  // results is an array that contains result of each asynchronous call
+  console.log(results[0], results[1]);
 });
 ```
 
 ## Callback: done
 
-Every asynchronous function within finish should use 'done' as their callback, or call 'done' in their callback. It accepts three arguments: __error__, __result__, __key__.
+Every asynchronous function within finish should use 'done' as their callback, or call 'done' in their callback. It accepts two arguments: __error__ and __result__.
 
-If you omit the third argument: __key__, __result__ passed to 'done' are collected into an array: __results__ which is passed as an argument to the final callback. If you specify the third argument __key__, __result__ will be collected into an object; each with __key__ as its key. 
-
-For example,
-```javascript
-finish(function(async) { 
-  ['file1', 'file2', 'file3'].forEach(function(file) {
-    async(function(done) { 
-      fs.lstat(file, function(err, stat) {
-        done(err, stat.size, file);
-      }); 
-    });
-  });
-}, function(err, results) {
-  // results is an object, not an array
-  console.log(results)
-});
-```
+__result__ passed to 'done' are collected into an array: __results__ which is passed as an argument to the final callback.
 
 ## `finish.forEach`
 
