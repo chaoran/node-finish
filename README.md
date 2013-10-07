@@ -19,7 +19,8 @@ finish(function(async) {
   async(function(done) { fs.readFile('hello.txt', done); }
   async(function(done) { fs.readFile('world.txt', done); }
 }, function(err, results) {
-  // This callback is invoked after all asynchronous calls finish or as soon as an error occurs
+  // This callback is invoked after all asynchronous calls finish
+  // or as soon as an error occurs
   // results is an array that contains result of each asynchronous call
   console.log(results[0], results[1]);
 });
@@ -27,31 +28,31 @@ finish(function(async) {
 
 ## `finish(func[, reducer[, initialValue]], callback)`
 ### Parameters
-* `func` -- function that makes asynchronous calls, taking one argument:
-  * `async([key, ]done)` -- wrapper function that wraps an asynchronous call.
-    * `key` -- If provided, result of this call will be added as a property
-      __key__ of the final __results__ object. (See below.)
-    * `done` -- callback function for individual asynchronous calls, taking two
+* `func`: function that makes asynchronous calls, taking one argument:
+  * `async([key, ]done)`: wrapper function that wraps an asynchronous call.
+    * `key`(__optional__): If provided, result of this call will be added as a
+      property `key` of the final `results` object. (See below.)
+    * `done`: callback function for individual asynchronous calls, taking two
       arguments:
-      * `err` -- any truthy value of __err__ indicates an error.
-      * `result` -- return value of the asynchronous call; it is captured by the
-        final __results__.
-* `reducer` (optional) -- reduction function to execute on each result, taking
+      * `err`: any truthy value of __err__ will cause the final `callback` to
+        be invoked immediately.
+      * `result`: return value of the asynchronous call; it is captured by the
+        final `results`.
+* `reducer`(__optional__): reduction function to execute on each result, taking
   two arguments:
-  * `previousValue` -- The value previously returned in the last invocation of
+  * `previousValue`: The value previously returned in the last invocation of
     the `reducer`, or `initialValue`, if supplied.
-  * `currentValue` -- The current result returned by an asynchronous call.
-* `initialValue` (optional) -- Object to use as the first argument to the first
+  * `currentValue`: The current result returned by an asynchronous call.
+* `initialValue`(optional): Object to use as the first argument to the first
   call of the `reducer`. This argument should only be used when an `reducer` is
-  presented.
-* `callback` -- The final callback that is invoked when all asynchronous calls
-  completes or an error occured, taking two arguments:
-  * `err` -- If an error occured, `err` is the error. Otherwise, __null__.
-  * `results` -- An array of `result` objects returned by all asynchronous
+presented.
+* `callback`: The final callback that will be invoked when all asynchronous
+  calls complete or an error occured, taking two arguments:
+  * `err`: If an error occured, `err` is the error. Otherwise, __null__.
+  * `results`: An array of `result` objects returned by all asynchronous
     calls. The order of elements of `results` are not guaranteed. (See
-    `finish.ordered` if order guarantee is needed.) `results` is an object
-    returned by `Object.create(null)` if `key` argument is used in the first
-    `async` call.
+`finish.ordered` if order guarantee is needed.) `results` is an object returned
+by `Object.create(null)` if `key` argument is used in the first `async` call.
 
 ## `finish.map`
 
