@@ -57,6 +57,60 @@ used when an `reducer` is presented.
 is used in the first `async` call, `results` will be an object with __null__ as
 prototype; `result` will be properties of `results`.
 
+#### Description
+`finish` is the free form of finish utility. One should wrap each asynchronous
+call with `async` and the asynchronous call should invoke `done` as callback.
+Note that it is safe to pass an function to `async` that executes synchronous.
+`result` objects passed to `done` is collected into an array if the optional
+`key` parameter of `async` is not used. The order of `result` objects in
+`results` are not guaranteed. When `key` parameter is used in `async`, `results`
+will be an object that has __null__ as prototype; each `result` will be an
+property in `results` at the associated `key`.
+
+#### Examples
+```javascript
+finish(function(async) {
+  async(function(done) {
+    setTimeout(function() { done(null, 1); }, 100);
+  });
+  async(function(done) {
+    setTimeout(function() { done(null, 2); }, 100);
+  });
+}, function(err, results) {
+  assert.equal(results, [ 1, 2 ]);
+});
+
+// "keyed" finish
+finish(function(async) {
+  async("one", function(done) {
+    setTimeout(function() { done(null, 1); }, 100);
+  });
+  async("two", function(done) {
+    setTimeout(function() { done(null, 2); }, 200);
+  });
+}, function(err, results) {
+  assert.equal(results, { one: 1, two: 2 });
+});
+
+// with a reducer
+finish(
+  function(async) {
+    async(function(done) {
+      setTimeout(function() { done(null, 1); }, 100);
+    });
+    async(function(done) {
+      setTimeout(function() { done(null, 2); }, 200);
+    });
+  },
+  // reduction operator
+  function(prev, curr) { return prev + curr; },
+  // initial value
+  0,
+  // callback
+  function(err, results) { assert.equal(results, 3); }
+);
+```
+
 ## `finish.map`
 
 If you are executing the same function on every item in an array, and want a
