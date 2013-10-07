@@ -1,5 +1,4 @@
 # Finish
-======
 
 *Finish* is a high performance nodejs flow control utility that captures completion of multiple asynchronous calls with a single callback.
 
@@ -25,25 +24,9 @@ finish(function(async) {
 
 ## Callback: done
 
-Every asynchronous function within finish should use 'done' as their callback, or call 'done' in their callback. It accepts three arguments: __error__, __result__, __key__.
+Every asynchronous function within finish should use 'done' as their callback, or call 'done' in their callback. It accepts two arguments: __error__ and __result__.
 
-If you omit the third argument: __key__, __result__ passed to 'done' are collected into an array: __results__ which is passed as an argument to the final callback. If you specify the third argument __key__, __result__ will be collected into an object; each with __key__ as its key. 
-
-For example,
-```javascript
-finish(function(async) { 
-  ['file1', 'file2', 'file3'].forEach(function(file) {
-    async(function(done) { 
-      fs.lstat(file, function(err, stat) {
-        done(err, stat.size, file);
-      }); 
-    });
-  });
-}, function(err, results) {
-  // results is an object, not an array
-  console.log(results)
-});
-```
+__result__ passed to 'done' are collected into an array: __results__ which is passed as an argument to the final callback.
 
 ## `finish.forEach`
 
