@@ -1,17 +1,17 @@
 var util = require("util");
 var noop = function() {};
 
-var Finish = function(args, ordered, array) {
+var Finish = function(args, flavor, array) {
   switch (args.length) {
     case 2: {
-      this.results = [];
+      this.results = flavor === "keyed" ? Object.create(null) : [];
       this.callback = args[1];
-      this.listener = this.getDefaultListener(ordered);
+      this.listener = this.getDefaultListener(flavor);
     }; break;
     case 4: this.results = args[2];
     case 3: {
       this.callback = args[args.length - 1];
-      this.listener = ordered ?
+      this.listener = flavor === "ordered" ?
           this.getOrderedListener(args[1], array) :
           this.getUnorderedListener(args[1], array);
     }; break;
@@ -47,10 +47,10 @@ Finish.prototype.done = function(index) {
   };
 };
 
-Finish.prototype.getDefaultListener = function(ordered) {
+Finish.prototype.getDefaultListener = function(flavor) {
   var self = this;
 
-  return ordered ?
+  return flavor !== undefined ?
     function(value, index) { self.results[index] = value; } :
     function(value, index) { self.results.push(value); };
 };
@@ -115,23 +115,38 @@ Finish.prototype.getOrderedListener = function(func, array) {
 };
 
 module.exports = function(func) {
-  var finish = new Finish(arguments, false);
-  var done = finish.done();
+  var finish, args = arguments;
+  var spawn = function(key, async) {
+    var done;
 
-  func(function(async) {
+    if (async === undefined) {
+      finish = new Finish(args);
+      done = finish.done();
+      async = key;
+      spawn = function(async) { ++finish.count; async(done); }
+    } else {
+      finish = new Finish(args, "keyed");
+      done = finish.done(key);
+      spawn = function(key, async) { ++finish.count; async(finish.done(key)); };
+    }
+
     ++finish.count;
     async(done);
+  }
+
+  func(function(key, async) {
+    spawn(key, async);
   });
 
   finish.kickoff();
 };
 
 module.exports.ordered = function(func) {
-  var finish = new Finish(arguments, true);
+  var finish = new Finish(arguments, "ordered");
   var i = 0;
 
   func(function(async) {
-    finish.count++;
+    ++finish.count;
     async(finish.done(i++));
   });
 
@@ -140,20 +155,39 @@ module.exports.ordered = function(func) {
 
 module.exports.map = function(array, async) {
   var args = Array.prototype.slice.apply(arguments);
-  var finish = new Finish(args.slice(1), false, array);
-  var done = finish.done();
 
-  switch (async.length) {
-    case 2: array.forEach(function(item) {
-      async(item, done);
-    }); break;
-    case 3: array.forEach(function(item, index) {
-      async(item, index, done);
-    }); break;
-    case 4: array.forEach(function(item, index) {
-      async(item, index, array, done);
-    }); break;
-    default: throw new Error("Wrong number of arguments");
+  if (array instanceof Array === false) {
+    var keys = array.keys();
+    var finish = new Finish(args.slice(1), "keyed", array);
+
+    switch (async.length) {
+      case 2: keys.forEach(function(key) {
+        async(array[key], finish.done(key));
+      }); break;
+      case 3: keys.forEach(function(key) {
+        async(array[key], key, finish.done(key));
+      }); break;
+      case 4: keys.forEach(function(key) {
+        async(array[key], key, array, finish.done(key));
+      }); break;
+      default: throw new Error("Wrong number of arguments");
+    }
+  } else {
+    var finish = new Finish(args.slice(1), undefined, array);
+    var done = finish.done();
+
+    switch (async.length) {
+      case 2: array.forEach(function(item) {
+        async(item, done);
+      }); break;
+      case 3: array.forEach(function(item, index) {
+        async(item, index, done);
+      }); break;
+      case 4: array.forEach(function(item, index) {
+        async(item, index, array, done);
+      }); break;
+      default: throw new Error("Wrong number of arguments");
+    }
   }
 
   finish.kickoff();
@@ -161,7 +195,7 @@ module.exports.map = function(array, async) {
 
 module.exports.ordered.map = function(array, async) {
   var args = Array.prototype.slice.apply(arguments);
-  var finish = new Finish(args.slice(1), true, array);
+  var finish = new Finish(args.slice(1), "ordered", array);
 
   switch (async.length) {
     case 2: array.forEach(function(item, index) {
