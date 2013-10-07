@@ -116,10 +116,11 @@ Finish.prototype.getOrderedListener = function(func, array) {
 
 module.exports = function(func) {
   var finish = new Finish(arguments, false);
+  var done = finish.done();
 
   func(function(async) {
-    finish.count++;
-    async(finish.done());
+    ++finish.count;
+    async(done);
   });
 
   finish.kickoff();
@@ -140,16 +141,17 @@ module.exports.ordered = function(func) {
 module.exports.map = function(array, async) {
   var args = Array.prototype.slice.apply(arguments);
   var finish = new Finish(args.slice(1), false, array);
+  var done = finish.done();
 
   switch (async.length) {
     case 2: array.forEach(function(item) {
-      async(item, finish.done());
+      async(item, done);
     }); break;
     case 3: array.forEach(function(item, index) {
-      async(item, index, finish.done());
+      async(item, index, done);
     }); break;
     case 4: array.forEach(function(item, index) {
-      async(item, index, array, finish.done());
+      async(item, index, array, done);
     }); break;
     default: throw new Error("Wrong number of arguments");
   }
