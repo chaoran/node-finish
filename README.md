@@ -1,6 +1,7 @@
 # Finish
 
-*Finish* is a high performance nodejs flow control utility that captures completion of multiple asynchronous calls with a single callback.
+*Finish* is a *high performance* nodejs flow control utility that captures
+completion of multiple asynchronous calls with a single callback.
 
 ## Installation
 You can install using Node Package Manager (npm):
@@ -12,7 +13,9 @@ You can install using Node Package Manager (npm):
 var finish = require("finish");
 finish(function(async) {
   // Any asynchronous calls within this function will be captured
-  // Just wrap each asynchronous call with function 'async'
+  // Just wrap each asynchronous call with function 'async'.
+  // Each asynchronous call should invoke 'done' as its callback.
+  // 'done' tasks two arguments: error and result.
   async(function(done) { fs.readFile('hello.txt', done); }
   async(function(done) { fs.readFile('world.txt', done); }
 }, function(err, results) {
@@ -22,15 +25,38 @@ finish(function(async) {
 });
 ```
 
-## Callback: done
+## `finish(func[, reducer[, initialValue]], callback)`
+### Parameters
+* `func` -- function that makes asynchronous calls, taking one argument:
+  * `async([key, ]done)` -- wrapper function that wraps an asynchronous call.
+    * `key` -- If provided, result of this call will be added as a property
+      __key__ of the final __results__ object. (See below.)
+    * `done` -- callback function for individual asynchronous calls, taking two
+      arguments:
+      * `err` -- any truthy value of __err__ indicates an error.
+      * `result` -- return value of the asynchronous call; it is captured by the
+        final __results__.
+* `reducer` (optional) -- reduction function to execute on each result, taking
+  two arguments:
+  * `previousValue` -- The value previously returned in the last invocation of
+    the `reducer`, or `initialValue`, if supplied.
+  * `currentValue` -- The current result returned by an asynchronous call.
+* `initialValue` (optional) -- Object to use as the first argument to the first
+  call of the `reducer`. This argument should only be used when an `reducer` is
+  presented.
+* `callback` -- The final callback that is invoked when all asynchronous calls
+  completes or an error occured, taking two arguments:
+  * `err` -- If an error occured, `err` is the error. Otherwise, __null__.
+  * `results` -- An array of `result` objects returned by all asynchronous
+    calls. The order of elements of `results` are not guaranteed. (See
+    `finish.ordered` if order guarantee is needed.) `results` is an object
+    returned by `Object.create(null)` if `key` argument is used in the first
+    `async` call.
 
-Every asynchronous function within finish should use 'done' as their callback, or call 'done' in their callback. It accepts two arguments: __error__ and __result__.
+## `finish.map`
 
-__result__ passed to 'done' are collected into an array: __results__ which is passed as an argument to the final callback.
-
-## `finish.forEach`
-
-If you are executing the same function on every item in an array, and want a callback after all is done? use `finish.forEach`:
+If you are executing the same function on every item in an array, and want a
+callback after all is done? use `finish.forEach`:
 
 ```javascript
 finish.forEach(['file1', 'file2', 'file3'], function(file, done) { 
