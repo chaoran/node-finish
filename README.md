@@ -1,6 +1,6 @@
 # Finish
 
-*Finish* is a *high performance* nodejs flow control utility that captures
+_Finish_ is a *high performance* nodejs flow control utility that captures
 completion of multiple asynchronous calls with a single callback.
 
 ## Installation
@@ -27,7 +27,12 @@ finish(function(async) {
 ```
 
 ## API
-### `finish(func[, reducer[, initialValue]], callback)`
+### finish
+#### Syntax
+```javascript
+finish(func[, reducer[, initialValue]], callback)
+```
+
 #### Parameters
 * `func`: function that makes asynchronous calls, taking one argument:
   * `async([key, ]done)`: wrapper function that wraps an asynchronous call.
@@ -43,7 +48,8 @@ finish(function(async) {
   two arguments:
   * `previousValue`: The value previously returned in the last invocation of
     the `reducer`, or `initialValue`, if supplied.
-  * `currentValue`: The current result returned by an asynchronous call.
+  * `currentValue`: The current `result` returned by an asynchronous call.
+  * `key`: the `key` associated with the `async` call if provided.
 * `initialValue`(__optional__): Object to use as the first argument to the first
   call of the `reducer`. It omitted, the first `result` returned by any
 asynchronous call will be used as `initialValue`. This argument should only be
@@ -113,7 +119,12 @@ finish(
 );
 ```
 
-### `finish.map(array, async[, reducer[, initialValue]], callback)`
+### finish.map
+#### Syntax
+```javascript
+finish.map(array, async[, reducer[, initialValue]], callback)
+```
+
 #### Parameters
 * `array`: An array of elements or an object.
 * `async`: If `array` is an instance of Array, `async` will be invoked on every
@@ -126,7 +137,13 @@ array, done)`.
   * `array`: the array or object being traversed;
   * `done`: the callback function for the asynchronous call (Same as in
     `finish`).
-* `reducer`(__optional__): Same as in `finish`.
+* `reducer`(__optional__): Same reduce function as in `finish`. It takes four
+  arguments:
+  * `previousValue`: Same as in `finish`.
+  * `currentValue`: Same as in `finish`.
+  * `index`: The index of the corresponding element in `array`, or the
+    property name of the corresponding property in `array` object.
+  * `array`: The same `array` passed to `finish.map`.
 * `initialValue`(__optional__): Same as in `finish`.
 * `callback`: Same as in `finish`.
 
@@ -152,30 +169,48 @@ finish.map({ one: 1, two: 2, three: 3}, function(value, done) {
 });
 ```
 
+### finish.ordered
+#### Syntax
+```javascript
+finish.ordered(func[, reducer[, initialValue]], callback)
+finish.ordered.map(array, async[, reducer[, initialValue]], callback)
+```
+
+#### Description
+These two functions is the same as `finish` and `finish.map` with the addition
+of order guarantee. The order of `result` objects in `results` are guaranteed to
+be the same as the order of invocation of asynchronous calls. If using a
+reducer, the reducer is invoked in the same order as the asynchronous calls
+spawned.
+
 ## Why not use Async.parallel?
 
-[Async.parallel](http://github.com/caolan/async#parallel) accepts an array of continuation functions and runs them in parallel. It also provides a callback function which is fired after all functions finish. 
-Finish differs from async.parallel because it does not require user to pack asynchronous calls into an array to run them in parallel and track their completion. This gives you more flexibility and greatly reduce the lines of plateboiler code you need to write when using Async.parallel.
-Moreover, it increase parallelism, which gives you better performance.
+[Async.parallel](http://github.com/caolan/async#parallel) accepts an array of
+continuation functions and runs them in parallel. It also provides a callback
+function which is fired after all functions finish.  Finish differs from
+async.parallel because it does not require user to pack asynchronous calls into
+an array to run them in parallel and track their completion. This gives you more
+flexibility and greatly reduce the lines of plateboiler code you need to write
+when using Async.parallel.  Moreover, it increase parallelism, which gives you
+better performance.
 
 ## Performance: finish vs. async.parallel
 
-Examples folder contains an example which calculates a size of a directory, implemented in both finish and async.parallel.
+Examples folder contains an example which calculates a size of a directory,
+implemented in both finish and async.parallel.
 Here's how they perform on my macbook:
 
-    $ time node size.js 
-    /Users/chaorany: 118740.345 MB
+    $ time node size.js $HOME
+    /Users/chaorany: 109295.691 MB
 
-    real  0m14.965s
-    user  0m15.224s
-    sys 0m20.381s
-    
-    $ time node size-async.js 
-    /Users/chaorany: 118738.366 MB
+    real  0m11.690s
+    user  0m11.956s
+    sys 0m20.838s
 
-    real  0m20.036s
-    user  0m20.080s
-    sys 0m20.458s
+    $ time node size-async.js $HOME
+    /Users/chaorany: 109295.691 MB
 
-(I don't know why returned size is different on my machine. It would be great if you can send me a message if you might know the reason...)
+    real  0m14.348s
+    user  0m14.679s
+    sys 0m21.068s
 
