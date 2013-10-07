@@ -31,6 +31,23 @@ describe('finish', function() {
     });
   });
 
+  describe('when spawning with keys', function() {
+    it('should return an object', function(done) {
+      finish(function(async) {
+        list.forEach(function(i) {
+          async(i, function(done) { echo(i, done); });
+        });
+      }, function(err, results) {
+        assert.equal(typeof results, 'object');
+        assert.equal(results instanceof Array, false);
+        for (var key in results) {
+          assert.equal(key, results[key]);
+        }
+        done();
+      });
+    });
+  });
+
   describe('.map()', function() {
     it('should finish async tasks on each element', function(done) {
       finish.map(list, function(i, done) {
@@ -40,6 +57,25 @@ describe('finish', function() {
         results.sort(function(a, b) { return a - b; });
         list.forEach(function(i) { assert.equal(results[i], i); });
         done();
+      });
+    });
+
+    describe('when mapping an object', function() {
+      it('should map async tasks to each property', function(done) {
+        var obj = Object.create(null);
+
+        list.forEach(function(i) { obj[i] = i; });
+
+        finish.map(obj, function(i, done) {
+          echo(i, done);
+        }, function(err, results) {
+          assert.equal(typeof results, 'object');
+          assert.equal(results instanceof Array, false);
+          for (var key in results) {
+            assert.equal(key, results[key]);
+          }
+          done();
+        });
       });
     });
   });
