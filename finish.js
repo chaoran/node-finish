@@ -38,7 +38,7 @@ Finish.prototype.done = function(index) {
       self.kickoff = noop;
       self._callback(err);
     } else {
-      self.listener(result, index);
+      if (arguments.length > 1) self.listener(result, index);
       if (--self.count === 0) {
         self.callback(null, self.results);
         self.callback = noop;
