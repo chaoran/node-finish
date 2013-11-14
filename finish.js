@@ -66,8 +66,7 @@ Finish.prototype.getUnorderedListener = function(func, array) {
 
   return function(value) {
     self.results = value;
-    self.removeAllListeners('result');
-    self.on('result', listener);
+    self.listener = listener;
   }
 };
 
@@ -102,8 +101,7 @@ Finish.prototype.getOrderedListener = function(func, array) {
     if (index === 0) {
       self.results = value;
       next = 1;
-      self.removeAllListeners('result');
-      self.on('result', listener);
+      self.listener = listener;
     } else {
       for (var i = 0, l = pending.length; i < l; ++i) {
         if (pending[i].index > index) {
