@@ -131,6 +131,11 @@ module.exports = function(func) {
     async(done);
   });
 
+  if (finish == undefined) {
+    finish = new Finish(args);
+    done = finish.done();
+  }
+
   finish.kickoff();
 };
 

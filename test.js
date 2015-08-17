@@ -31,6 +31,17 @@ describe('finish', function() {
     });
   });
 
+  it('should finish even if there are no tasks', function(done) {
+    finish(function(async) {
+      [].forEach(function(i) {
+        async(function(done) { echo(i, done); });
+      });
+    }, function(err, results) {
+      assert.equal(results.length, 0);
+      done();
+    });
+  });
+
   describe('when spawning with keys', function() {
     it('should return an object', function(done) {
       finish(function(async) {
