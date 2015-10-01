@@ -16,8 +16,8 @@ finish(function(async) {
   // Just wrap each asynchronous call with function 'async'.
   // Each asynchronous call should invoke 'done' as its callback.
   // 'done' tasks two arguments: error and result.
-  async(function(done) { fs.readFile('hello.txt', done); }
-  async(function(done) { fs.readFile('world.txt', done); }
+  async(function(done) { fs.readFile('hello.txt', done); });
+  async(function(done) { fs.readFile('world.txt', done); });
 }, function(err, results) {
   // This callback is invoked after all asynchronous calls finish
   // or as soon as an error occurs
